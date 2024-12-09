@@ -1,0 +1,60 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: comparei_servico_usuario
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      - CONFIG_PATH=/config/config.yaml
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    networks:
+      - app_network
+    volumes:
+      - ./.env:/app/.env
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE} 
+      MYSQL_USER: ${DB_USER} 
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql 
+    expose:
+      - "${DB_PORT}" 
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      retries: 5
+      start_period: 5s
+      timeout: 10s
+    networks:
+      - app_network
+
+  redis:
+    image: redis:7.0
+    container_name: redis_cache
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    networks:
+      - app_network
+
+volumes:
+  db_data:
+
+networks:
+  app_network:
+    driver: bridge

@@ -1,0 +1,13 @@
+app:
+  port: ${APP_PORT}
+
+database:
+  host: ${DB_HOST}
+  user: ${DB_USER}
+  password: ${DB_PASSWORD}
+  port: ${DB_PORT}
+  database: ${MYSQL_DATABASE}
+
+redis:
+  host: ${REDIS_HOST}
+  port: ${REDIS_PORT}
