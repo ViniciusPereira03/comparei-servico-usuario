@@ -4,9 +4,9 @@ Este é um serviço backend desenvolvido em Go, que se conecta ao banco de dados
 
 ## **Tecnologias Utilizadas**
 
-- **Go 1.x** – Linguagem de programação principal.
-- **MySQL 8.x** – Banco de dados relacional para armazenar informações.
-- **Redis 7.x** – Sistema de armazenamento em cache, utilizado para melhorar a performance.
+- **Go 1.22** – Linguagem de programação principal.
+- **MySQL 8.0** – Banco de dados relacional para armazenar informações.
+- **Redis 7.0** – Sistema de armazenamento em cache, utilizado para melhorar a performance.
 - **GORM** – ORM para interação com o banco de dados MySQL.
 - **Docker** – Contêineres para facilitar o desenvolvimento e a implantação.
 
@@ -59,7 +59,7 @@ Este projeto segue a seguinte estrutura de pastas:
 
 Antes de rodar o serviço, você precisa ter os seguintes programas instalados:
 
-- **Go** (1.x)
+- **Go** (1.22)
 - **Docker** (para rodar os containers MySQL e Redis)
 - **Docker Compose** (opcional, para facilitar a orquestração de containers)
 
