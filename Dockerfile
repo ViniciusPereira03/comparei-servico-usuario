@@ -1,13 +1,9 @@
-FROM golang:1.22-alpine as builder
+FROM golang:1.23.0
 WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod tidy
+
+# Instalar nc (netcat) para o script de espera
+RUN apt-get update && apt-get install -y netcat-openbsd
+
 COPY . .
-RUN go build -o server cmd/main.go
-FROM alpine:3.18
-RUN apk --no-cache add ca-certificates
-WORKDIR /app
-COPY --from=builder /app/server /app/
-COPY config/config.yaml /app/config/config.yaml
-EXPOSE 8080
-ENTRYPOINT ["/app/server"]
+RUN go mod tidy && go build -o main ./main.go
+CMD ["./main"]

@@ -1,0 +1,73 @@
+@token = {{ login.response.body.token }}
+
+###
+# @name user
+
+post {{host}}/user
+Content-Type: application/json
+apiKey: {{apiKey}}
+
+{
+    "name": "Teste",
+    "username": "username_teste3",
+    "email": "email3@teste.com",
+    "password": "123",
+    "status": 1
+}
+
+###
+get {{host}}/user/3
+Content-Type: application/json
+apiKey: {{apiKey}}
+
+###
+# @name updateUser
+
+put {{host}}/user/3
+Content-Type: application/json
+apiKey: {{apiKey}}
+
+{
+    "name": "Updated Name",
+    "username": "updated_username",
+    "email": "updated_email@teste.com",
+    "password": "new_password",
+    "status": 1,
+    "photo": "",
+    "ray_distance": 15,
+    "level": 1
+}
+
+###
+# @name deleteUser
+
+delete {{host}}/user/3
+Content-Type: application/json
+apiKey: {{apiKey}}
+
+###
+# @name login
+
+post {{host}}/login
+Content-Type: application/json
+apiKey: {{apiKey}}
+
+{
+    "username": "username_teste2",
+    "password": "123"
+}
+
+###
+# @name validateToken
+
+get {{host}}/validate-token
+Content-Type: application/json
+apiKey: {{apiKey}}
+Authorization: Bearer {{token}}
+
+###
+# @name clearRedis
+
+post {{host}}/clear-redis
+Content-Type: application/json
+apiKey: {{apiKey}}
