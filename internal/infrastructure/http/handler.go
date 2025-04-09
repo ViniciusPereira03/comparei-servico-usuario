@@ -55,6 +55,15 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+func GetUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := service.GetUsers()
+	if err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+	json.NewEncoder(w).Encode(users)
+}
+
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])

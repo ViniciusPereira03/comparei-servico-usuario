@@ -17,6 +17,7 @@ func NewRouter(userService *app.UserService, redisClient *redis.Client) *mux.Rou
 	r.Use(middleware.APIKeyMiddleware)
 
 	r.HandleFunc("/user", CreateUser).Methods("POST")
+	r.HandleFunc("/users", GetUsers).Methods("GET")
 	r.HandleFunc("/user/{id}", GetUser).Methods("GET")
 	r.HandleFunc("/user/{id}", UpdateUser).Methods("PUT")
 	r.HandleFunc("/user/{id}", DeleteUser).Methods("DELETE")

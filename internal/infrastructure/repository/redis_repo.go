@@ -41,6 +41,20 @@ func (r *RedisRepository) GetUser(id int) (*domain.User, error) {
 	return &user, nil
 }
 
+func (r *RedisRepository) GetUsers() (*[]domain.User, error) {
+	ctx := context.Background()
+	data, err := r.client.Get(ctx, "users").Result()
+	if err != nil {
+		return nil, err
+	}
+	var user []domain.User
+	err = json.Unmarshal([]byte(data), &user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (r *RedisRepository) UpdateUser(user *domain.User) error {
 	return r.CreateUser(user)
 }

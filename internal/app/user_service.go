@@ -49,6 +49,21 @@ func (s *UserService) GetUser(id int) (*domain.User, error) {
 	return user, nil
 }
 
+func (s *UserService) GetUsers() (*[]domain.User, error) {
+	users, err := s.redisRepo.GetUsers()
+	if err == nil {
+		return users, nil
+	}
+
+	users, err = s.mysqlRepo.GetUsers()
+	if err != nil {
+		return nil, err
+	}
+
+	// s.redisRepo.CreateUser(users)
+	return users, nil
+}
+
 func (s *UserService) UpdateUser(user *domain.User) error {
 	err := s.mysqlRepo.UpdateUser(user)
 	if err == nil {

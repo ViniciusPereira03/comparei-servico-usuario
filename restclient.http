@@ -8,12 +8,17 @@ Content-Type: application/json
 apiKey: {{apiKey}}
 
 {
-    "name": "Teste",
-    "username": "username_teste3",
-    "email": "email3@teste.com",
+    "name": "Usuário 1",
+    "username": "user_1",
+    "email": "email@teste.com",
     "password": "123",
     "status": 1
 }
+
+###
+get {{host}}/users
+Content-Type: application/json
+apiKey: {{apiKey}}
 
 ###
 get {{host}}/user/3
