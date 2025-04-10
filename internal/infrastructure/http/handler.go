@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/go-redis/redis/v8"
@@ -147,10 +146,10 @@ func LoginHandler(userService *app.UserService) http.HandlerFunc {
 
 		// Criar token JWT
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"id":       user.ID,
-			"username": user.Username,
-			"email":    user.Email,
-			"exp":      time.Now().Add(time.Hour * 72).Unix(),
+			"id":              user.ID,
+			"username":        user.Username,
+			"email":           user.Email,
+			"validation_hash": os.Getenv("VALIDATION_HASH"),
 		})
 
 		tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
