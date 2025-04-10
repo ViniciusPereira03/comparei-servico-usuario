@@ -42,7 +42,7 @@ func main() {
 	}
 
 	mysqlRepo := repository.NewMySQLRepository(db)
-	redisRepo := repository.NewRedisRepository(redisClient)
+	redisRepo := repository.NewUserRepositoryCache(redisClient)
 
 	if mysqlRepo == nil {
 		log.Fatal("mysqlRepo está nil")

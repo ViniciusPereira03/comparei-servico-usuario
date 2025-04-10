@@ -8,9 +8,9 @@ Content-Type: application/json
 apiKey: {{apiKey}}
 
 {
-    "name": "Usuário 1",
-    "username": "user_1",
-    "email": "email@teste.com",
+    "name": "Usuário 3",
+    "username": "user_3",
+    "email": "email3@teste.com",
     "password": "123",
     "status": 1
 }

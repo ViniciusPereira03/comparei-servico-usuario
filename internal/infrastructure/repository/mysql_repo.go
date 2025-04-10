@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"comparei-servico-usuario/internal/domain"
+	"comparei-servico-usuario/internal/domain/user"
 	"database/sql"
 	"fmt"
 )
@@ -15,16 +15,15 @@ func NewMySQLRepository(db *sql.DB) *MySQLRepository {
 }
 
 // Cadastrar usuário
-func (r *MySQLRepository) CreateUser(user *domain.User) error {
-	fmt.Println("INSERT USER: ", user)
+func (r *MySQLRepository) CreateUser(user *user.User) error {
 	_, err := r.db.Exec("INSERT INTO user (name, username, email, password, status) VALUES (?, ?, ?, ?, ?)",
 		user.Name, user.Username, user.Email, user.Password, user.Status)
 	return err
 }
 
 // Buscar usuário por ID
-func (r *MySQLRepository) GetUser(id int) (*domain.User, error) {
-	var user domain.User
+func (r *MySQLRepository) GetUser(id int) (*user.User, error) {
+	var user user.User
 	err := r.db.QueryRow("SELECT id, name, username, email, status FROM user WHERE id = ?", id).
 		Scan(&user.ID, &user.Name, &user.Username, &user.Email, &user.Status)
 	if err != nil {
@@ -34,8 +33,8 @@ func (r *MySQLRepository) GetUser(id int) (*domain.User, error) {
 }
 
 // Buscar lista de usuários
-func (r *MySQLRepository) GetUsers() (*[]domain.User, error) {
-	var users []domain.User
+func (r *MySQLRepository) GetUsers() ([]*user.User, error) {
+	var users []user.User
 	rows, err := r.db.Query("SELECT id, name, username, email, status FROM user WHERE status = 1 AND deleted_at IS NULL")
 	if err != nil {
 		return nil, err
@@ -43,7 +42,7 @@ func (r *MySQLRepository) GetUsers() (*[]domain.User, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var user domain.User
+		var user user.User
 		if err := rows.Scan(&user.ID, &user.Name, &user.Username, &user.Email, &user.Status); err != nil {
 			return nil, err
 		}
@@ -54,13 +53,18 @@ func (r *MySQLRepository) GetUsers() (*[]domain.User, error) {
 		return nil, err
 	}
 
-	return &users, nil
+	userPtrs := make([]*user.User, len(users))
+	for i := range users {
+		userPtrs[i] = &users[i]
+	}
+
+	return userPtrs, nil
 }
 
 // Atualizar usuário
-func (r *MySQLRepository) UpdateUser(user *domain.User) error {
+func (r *MySQLRepository) UpdateUser(user *user.User) error {
 	_, err := r.db.Exec("UPDATE user SET name = ?, username = ?, email = ?, status = ? WHERE id = ?",
-		user.Name, user.Username, user.Email, user.Password, user.Status)
+		user.Name, user.Username, user.Email, user.Status, user.ID)
 	if err != nil {
 		return fmt.Errorf("%v", err)
 	}
@@ -77,8 +81,8 @@ func (r *MySQLRepository) DeleteUser(id int) error {
 }
 
 // GetUserByUsername busca um usuário pelo nome de usuário
-func (repo *MySQLRepository) GetUserByUsername(username string) (*domain.User, error) {
-	var user domain.User
+func (repo *MySQLRepository) GetUserByUsername(username string) (*user.User, error) {
+	var user user.User
 	query := "SELECT id, username, email, password FROM user WHERE username = ?"
 	err := repo.db.QueryRow(query, username).Scan(&user.ID, &user.Username, &user.Email, &user.Password)
 	if err != nil {

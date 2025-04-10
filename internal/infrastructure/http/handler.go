@@ -2,7 +2,7 @@ package http
 
 import (
 	"comparei-servico-usuario/internal/app"
-	"comparei-servico-usuario/internal/domain"
+	"comparei-servico-usuario/internal/domain/user"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -23,13 +23,12 @@ func InitHandlers(userService *app.UserService) {
 }
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	var user domain.User
+	var user user.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
 	}
 
-	fmt.Println("USER: ", user)
 	err := service.CreateUser(&user)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Erro ao cadastrar usuário: %w", err), http.StatusInternalServerError)
@@ -71,7 +70,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
-	var user domain.User
+	var user user.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
@@ -79,7 +78,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	user.ID = id
 	err = service.UpdateUser(&user)
 	if err != nil {
-		http.Error(w, "Erro ao atualizar usuário", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Erro ao atualizar usuário: %w", err), http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -105,7 +104,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 // LoginHandler lida com a autenticação do usuário e geração de token JWT
 func LoginHandler(userService *app.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var creds domain.User
+		var creds user.User
 		err := json.NewDecoder(r.Body).Decode(&creds)
 		if err != nil {
 			http.Error(w, "Invalid request payload", http.StatusBadRequest)

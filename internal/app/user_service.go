@@ -1,23 +1,23 @@
 package app
 
 import (
-	"comparei-servico-usuario/internal/domain"
+	"comparei-servico-usuario/internal/domain/user"
+	user_interface "comparei-servico-usuario/internal/domain/user/interface"
 	"errors"
-	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
-	mysqlRepo domain.UserRepository
-	redisRepo domain.UserRepository
+	mysqlRepo user_interface.UserRepository
+	redisRepo user_interface.UserRepositoryCache
 }
 
-func NewUserService(mysqlRepo domain.UserRepository, redisRepo domain.UserRepository) *UserService {
+func NewUserService(mysqlRepo user_interface.UserRepository, redisRepo user_interface.UserRepositoryCache) *UserService {
 	return &UserService{mysqlRepo: mysqlRepo, redisRepo: redisRepo}
 }
 
-func (s *UserService) CreateUser(user *domain.User) error {
+func (s *UserService) CreateUser(user *user.User) error {
 	// Criptografar a senha do usuário
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -25,16 +25,14 @@ func (s *UserService) CreateUser(user *domain.User) error {
 	}
 	user.Password = string(hashedPassword)
 
-	fmt.Println("SENHA: ", user.Password)
-
 	err = s.mysqlRepo.CreateUser(user)
 	if err == nil {
-		s.redisRepo.CreateUser(user)
+		s.redisRepo.SetUser(user)
 	}
 	return err
 }
 
-func (s *UserService) GetUser(id int) (*domain.User, error) {
+func (s *UserService) GetUser(id int) (*user.User, error) {
 	user, err := s.redisRepo.GetUser(id)
 	if err == nil {
 		return user, nil
@@ -45,14 +43,18 @@ func (s *UserService) GetUser(id int) (*domain.User, error) {
 		return nil, err
 	}
 
-	s.redisRepo.CreateUser(user)
+	s.redisRepo.SetUser(user)
 	return user, nil
 }
 
-func (s *UserService) GetUsers() (*[]domain.User, error) {
+func (s *UserService) GetUsers() ([]*user.User, error) {
 	users, err := s.redisRepo.GetUsers()
 	if err == nil {
-		return users, nil
+		userPtrs := make([]*user.User, len(users))
+		for i := range users {
+			userPtrs[i] = users[i]
+		}
+		return userPtrs, nil
 	}
 
 	users, err = s.mysqlRepo.GetUsers()
@@ -60,14 +62,19 @@ func (s *UserService) GetUsers() (*[]domain.User, error) {
 		return nil, err
 	}
 
-	// s.redisRepo.CreateUser(users)
-	return users, nil
+	userPtrs := make([]*user.User, len(users))
+	for i := range users {
+		userPtrs[i] = users[i]
+	}
+
+	s.redisRepo.SetUsers(userPtrs)
+	return userPtrs, nil
 }
 
-func (s *UserService) UpdateUser(user *domain.User) error {
+func (s *UserService) UpdateUser(user *user.User) error {
 	err := s.mysqlRepo.UpdateUser(user)
 	if err == nil {
-		s.redisRepo.CreateUser(user)
+		s.redisRepo.SetUser(user)
 	}
 	return err
 }
@@ -84,7 +91,7 @@ func (s *UserService) DeleteUser(id int) error {
 }
 
 // Authenticate verifica as credenciais do usuário e retorna o usuário se forem válidas
-func (s *UserService) Authenticate(username, password string) (*domain.User, error) {
+func (s *UserService) Authenticate(username, password string) (*user.User, error) {
 	user, err := s.mysqlRepo.GetUserByUsername(username)
 	if err != nil {
 		return nil, err
