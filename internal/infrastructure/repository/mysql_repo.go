@@ -17,7 +17,7 @@ func NewMySQLRepository(db *sql.DB) *MySQLRepository {
 // Cadastrar usuário
 func (r *MySQLRepository) CreateUser(user *user.User) error {
 	_, err := r.db.Exec("INSERT INTO user (name, username, email, password, status) VALUES (?, ?, ?, ?, ?)",
-		user.Name, user.Username, user.Email, user.Password, user.Status)
+		user.Name, user.Username, user.Email, user.Password, 1)
 	return err
 }
 

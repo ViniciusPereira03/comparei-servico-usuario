@@ -7,7 +7,6 @@ type CreateUserDTO struct {
 	Username string `json:"username" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=3"`
-	Status   int    `json:"status" validate:"required"`
 }
 
 // Método para converter CreateUserDTO para user.User
@@ -17,7 +16,6 @@ func (dto *CreateUserDTO) ParseToUser() *user.User {
 		Username: dto.Username,
 		Email:    dto.Email,
 		Password: dto.Password,
-		Status:   dto.Status,
 	}
 }
 
