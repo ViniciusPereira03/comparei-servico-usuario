@@ -3,6 +3,7 @@ package http
 import (
 	"comparei-servico-usuario/internal/app"
 	"comparei-servico-usuario/internal/domain/user"
+	"comparei-servico-usuario/internal/infrastructure/http/dto"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -11,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
@@ -23,13 +25,20 @@ func InitHandlers(userService *app.UserService) {
 }
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	var user user.User
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+	var userDTO dto.CreateUserDTO
+	if err := json.NewDecoder(r.Body).Decode(&userDTO); err != nil {
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
 	}
 
-	err := service.CreateUser(&user)
+	validate := validator.New()
+	if err := validate.Struct(userDTO); err != nil {
+		http.Error(w, "Dados inválidos", http.StatusBadRequest)
+		return
+	}
+
+	user := userDTO.ParseToUser()
+	err := service.CreateUser(user)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Erro ao cadastrar usuário: %w", err), http.StatusInternalServerError)
 		return
@@ -70,13 +79,23 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
-	var user user.User
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+
+	var userDTO dto.UpdateUserDTO
+	if err := json.NewDecoder(r.Body).Decode(&userDTO); err != nil {
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
 	}
+
+	validate := validator.New()
+	if err := validate.Struct(userDTO); err != nil {
+		http.Error(w, "Dados inválidos", http.StatusBadRequest)
+		return
+	}
+
+	user := userDTO.ParseToUser()
 	user.ID = id
-	err = service.UpdateUser(&user)
+
+	err = service.UpdateUser(user)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Erro ao atualizar usuário: %w", err), http.StatusInternalServerError)
 		return
