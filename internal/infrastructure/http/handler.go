@@ -24,23 +24,31 @@ func InitHandlers(userService *app.UserService) {
 	service = userService
 }
 
+func sendErrorResponse(w http.ResponseWriter, statusCode int, err error, message string) {
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(map[string]string{
+		"error":    err.Error(),
+		"mensagem": message,
+	})
+}
+
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	var userDTO dto.CreateUserDTO
 	if err := json.NewDecoder(r.Body).Decode(&userDTO); err != nil {
-		http.Error(w, "JSON inválido", http.StatusBadRequest)
+		sendErrorResponse(w, http.StatusBadRequest, err, "JSON inválido")
 		return
 	}
 
 	validate := validator.New()
 	if err := validate.Struct(userDTO); err != nil {
-		http.Error(w, "Dados inválidos", http.StatusBadRequest)
+		sendErrorResponse(w, http.StatusBadRequest, err, "Dados inválidos")
 		return
 	}
 
 	user := userDTO.ParseToUser()
 	err := service.CreateUser(user)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Erro ao cadastrar usuário: %w", err), http.StatusInternalServerError)
+		sendErrorResponse(w, http.StatusInternalServerError, err, "Erro ao cadastrar usuário")
 		return
 	}
 
@@ -76,19 +84,19 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		sendErrorResponse(w, http.StatusBadRequest, err, "Invalid user ID")
 		return
 	}
 
 	var userDTO dto.UpdateUserDTO
 	if err := json.NewDecoder(r.Body).Decode(&userDTO); err != nil {
-		http.Error(w, "JSON inválido", http.StatusBadRequest)
+		sendErrorResponse(w, http.StatusBadRequest, err, "JSON inválido")
 		return
 	}
 
 	validate := validator.New()
 	if err := validate.Struct(userDTO); err != nil {
-		http.Error(w, "Dados inválidos", http.StatusBadRequest)
+		sendErrorResponse(w, http.StatusBadRequest, err, "Dados inválidos")
 		return
 	}
 
@@ -97,7 +105,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	err = service.UpdateUser(user)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Erro ao atualizar usuário: %w", err), http.StatusInternalServerError)
+		sendErrorResponse(w, http.StatusInternalServerError, err, "Erro ao atualizar usuário")
 		return
 	}
 	w.WriteHeader(http.StatusOK)

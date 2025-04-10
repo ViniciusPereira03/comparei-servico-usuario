@@ -8,9 +8,9 @@ Content-Type: application/json
 apiKey: {{apiKey}}
 
 {
-    "name": "Usuário 3",
-    "username": "user_3",
-    "email": "email3@teste.com",
+    "name": "Usuário 4",
+    "username": "user_4",
+    "email": "email4@teste.com",
     "password": "123",
     "status": 1
 }
@@ -36,7 +36,6 @@ apiKey: {{apiKey}}
     "name": "Updated Name",
     "username": "updated_username",
     "email": "updated_email@teste.com",
-    "password": "new_password",
     "status": 1,
     "photo": "",
     "ray_distance": 15,
