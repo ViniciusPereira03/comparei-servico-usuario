@@ -8,10 +8,10 @@ Content-Type: application/json
 apiKey: {{apiKey}}
 
 {
-    "name": "Usuário1",
-    "username": "user1",
-    "email": "email1@teste.com",
-    "password": "123"
+    "name": "Vinícius Teste",
+    "username": "vini",
+    "email": "vini@teste.com",
+    "password": "12345678"
 }
 
 ###
@@ -20,21 +20,21 @@ Content-Type: application/json
 apiKey: {{apiKey}}
 
 ###
-get {{host}}/user/3
+get {{host}}/user/680e92d8820039eb6f362a47
 Content-Type: application/json
 apiKey: {{apiKey}}
 
 ###
 # @name updateUser
 
-put {{host}}/user/3
+put {{host}}/user/5
 Content-Type: application/json
 apiKey: {{apiKey}}
 
 {
     "name": "Updated Name",
-    "username": "updated_username",
-    "email": "updated_email@teste.com",
+    "username": "updated_username_up",
+    "email": "updated_email5@teste.com",
     "status": 1,
     "photo": "",
     "ray_distance": 15,
@@ -56,8 +56,8 @@ Content-Type: application/json
 apiKey: {{apiKey}}
 
 {
-    "username": "user",
-    "password": "123"
+    "username": "vini",
+    "password": "12345678"
 }
 
 ###
