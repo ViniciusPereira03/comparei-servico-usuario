@@ -3,7 +3,9 @@ package app
 import (
 	"comparei-servico-usuario/internal/domain/user"
 	user_interface "comparei-servico-usuario/internal/domain/user/interface"
+	"comparei-servico-usuario/internal/infrastructure/messaging/publisher"
 	"errors"
+	"log"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -17,19 +19,24 @@ func NewUserService(mysqlRepo user_interface.UserRepository, redisRepo user_inte
 	return &UserService{mysqlRepo: mysqlRepo, redisRepo: redisRepo}
 }
 
-func (s *UserService) CreateUser(user *user.User) error {
+func (s *UserService) CreateUser(user *user.User) (*user.User, error) {
 	// Criptografar a senha do usuário
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return errors.New("erro ao criptografar senha")
+		return nil, errors.New("erro ao criptografar senha")
 	}
 	user.Password = string(hashedPassword)
 
-	err = s.mysqlRepo.CreateUser(user)
+	new_user, err := s.mysqlRepo.CreateUser(user)
 	if err == nil {
-		s.redisRepo.SetUser(user)
+		s.redisRepo.SetUser(new_user)
+		err_pub := publisher.PubCreateUser(new_user)
+		if err_pub != nil {
+			log.Println("[ERRO PUB] ", err_pub)
+		}
 	}
-	return err
+
+	return new_user, err
 }
 
 func (s *UserService) GetUser(id int) (*user.User, error) {

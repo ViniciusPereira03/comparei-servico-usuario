@@ -5,6 +5,7 @@ import (
 	"comparei-servico-usuario/internal/app"
 	customHTTP "comparei-servico-usuario/internal/infrastructure/http"
 	"comparei-servico-usuario/internal/infrastructure/repository"
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -17,6 +18,16 @@ import (
 func main() {
 	if err := config.LoadConfig(); err != nil {
 		log.Fatal("Erro ao carregar configurações")
+	}
+
+	// Testar conexão com Redis de mensageria
+	redisMessaging := redis.NewClient(&redis.Options{
+		Addr: os.Getenv("REDIS_MESSAGING_HOST") + ":" + os.Getenv("REDIS_MESSAGING_PORT"),
+	})
+	ctx := context.Background()
+	_, err := redisMessaging.Ping(ctx).Result()
+	if err != nil {
+		log.Fatal("Não foi possível conectar ao Redis de mensageria:", err)
 	}
 
 	// Configuração da conexão com o MySQL usando variáveis de ambiente

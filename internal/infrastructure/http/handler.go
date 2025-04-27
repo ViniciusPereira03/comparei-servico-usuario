@@ -45,14 +45,14 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := userDTO.ParseToUser()
-	err := service.CreateUser(user)
+	new_user, err := service.CreateUser(user)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, err, "Erro ao cadastrar usuário")
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(new_user)
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
@@ -191,6 +191,26 @@ func ValidateTokenHandler() http.HandlerFunc {
 		if err != nil || !token.Valid {
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
+		}
+
+		// Acessar os dados (claims)
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			id := claims["id"]
+			username := claims["username"]
+			email := claims["email"]
+			validation_hash := claims["validation_hash"]
+
+			response := map[string]interface{}{
+				"id":              id,
+				"username":        username,
+				"email":           email,
+				"validation_hash": validation_hash,
+			}
+
+			fmt.Println(response)
+			// w.Header().Set("Content-Type", "application/json")
+			// json.NewEncoder(w).Encode(response)
+			// return
 		}
 
 		// Token é válido

@@ -11,6 +11,7 @@ services:
       - redis
     networks:
       - net_user
+      - comparei_net
     command: ["./wait-for-it.sh", "db", "--", "./main"]
     deploy:
       resources:
@@ -46,3 +47,6 @@ services:
 networks:
   net_user:
     driver: bridge
+  
+  comparei_net:
+    external: true

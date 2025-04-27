@@ -15,10 +15,23 @@ func NewMySQLRepository(db *sql.DB) *MySQLRepository {
 }
 
 // Cadastrar usuário
-func (r *MySQLRepository) CreateUser(user *user.User) error {
-	_, err := r.db.Exec("INSERT INTO user (name, username, email, password, status) VALUES (?, ?, ?, ?, ?)",
-		user.Name, user.Username, user.Email, user.Password, 1)
-	return err
+func (r *MySQLRepository) CreateUser(user *user.User) (*user.User, error) {
+	user.Status = 1
+	user.Level = 1
+
+	result, err := r.db.Exec("INSERT INTO user (name, username, email, password, status, level) VALUES (?, ?, ?, ?, ?, ?)",
+		user.Name, user.Username, user.Email, user.Password, user.Status, user.Level)
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	user.ID = int(id)
+	return user, nil
 }
 
 // Buscar usuário por ID

@@ -18,7 +18,9 @@
         "migrations": "database",
         "domain": "mappings",
         "infrastructure": "server",
-        "http": "public"
+        "http": "public",
+        "publisher": "shared",
+        "subscriber": "target"
     },
     "material-icon-theme.files.associations": {
 
