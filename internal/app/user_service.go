@@ -86,8 +86,20 @@ func (s *UserService) UpdateUser(user *user.User) error {
 	return err
 }
 
-func (s *UserService) DeleteUser(id int) error {
-	err := s.mysqlRepo.DeleteUser(id)
+func (s *UserService) UpdateLevelUser(user_id string, level int) error {
+	err := s.mongoRepo.UpdateLevelUser(user_id, level)
+	if err == nil {
+		user, err := s.mongoRepo.GetUser(user_id)
+		if err != nil {
+			return err
+		}
+		s.redisRepo.SetUser(user)
+	}
+	return err
+}
+
+func (s *UserService) DeleteUser(id string) error {
+	err := s.mongoRepo.DeleteUser(id)
 	if err == nil {
 		er := s.redisRepo.DeleteUser(id) // Remove do cache
 		if er != nil {

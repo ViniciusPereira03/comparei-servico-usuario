@@ -69,6 +69,15 @@ func main() {
 	// --- Service ---
 	userService := app.NewUserService(mongoRepo, cacheRepo)
 
+	// subscriber de eventos
+	subscriber.SetUserService(userService)
+	go func() {
+		fmt.Println("Inicializando subscriber...")
+		if err := subscriber.SubCreateUser(); err != nil {
+			log.Println("Erro no subscriber:", err)
+		}
+	}()
+
 	// HTTP
 	customHTTP.InitHandlers(userService)
 	router := customHTTP.NewRouter(userService, redisClient)
