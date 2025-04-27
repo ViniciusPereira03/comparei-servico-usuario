@@ -6,8 +6,8 @@ type UserRepositoryCache interface {
 	GetUsers() ([]*user.User, error)
 	SetUsers(users []*user.User) error
 
-	GetUser(id int) (*user.User, error)
+	GetUser(id string) (*user.User, error)
 	SetUser(user *user.User) error
 
-	DeleteUser(id int) error
+	DeleteUser(id string) error
 }

@@ -1,16 +1,24 @@
 #!/usr/bin/env bash
-
-# wait-for-it.sh -- host:port
+# wait-for-it.sh — espera por host:port e então executa o comando
 
 set -e
 
-host="$1"
+if [ $# -lt 1 ]; then
+  echo "Uso: $0 host:port [-- comando args...]"
+  exit 1
+fi
+
+hostport="$1"
 shift
 
-until nc -z "$host" 3306; do
-  >&2 echo "MySQL ainda não está pronto - aguardando..."
+# separa host e porta
+host="${hostport%:*}"
+port="${hostport##*:}"
+
+until nc -z "$host" "$port"; do
+  >&2 echo "⏳ $host:$port ainda não está disponível — aguardando..."
   sleep 1
 done
 
->&2 echo "MySQL está pronto - executando comando"
-exec "$@" 
+>&2 echo "✅ $host:$port está no ar — executando comando"
+exec "$@"

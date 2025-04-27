@@ -7,25 +7,30 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      - mongo-user
       - redis
     networks:
       - net_user
       - comparei_net
-    command: ["./wait-for-it.sh", "db", "--", "./main"]
+    command: ["./wait-for-it.sh", "mongo-user:27017", "--", "./main"]
     deploy:
       resources:
         limits:
           cpus: "1.0"
           memory: "512M"
-  db:
-    image: mysql:8
-    container_name: mysql_user
+  mongo-user:
+    image: mongo:latest
+    container_name: mongo-user
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: userdb
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: userdb
+      MONGO_INITDB_DATABASE: userdb
+    ports:
+      - "27017:27017"
     volumes:
-      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mongo_data:/data/db
+      - ./migrations:/docker-entrypoint-initdb.d
     networks:
       - net_user
     deploy:
@@ -50,3 +55,6 @@ networks:
   
   comparei_net:
     external: true
+
+volumes:
+  mongo_data:

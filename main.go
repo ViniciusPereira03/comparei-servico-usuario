@@ -1,72 +1,80 @@
 package main
 
 import (
-	"comparei-servico-usuario/config"
-	"comparei-servico-usuario/internal/app"
-	customHTTP "comparei-servico-usuario/internal/infrastructure/http"
-	"comparei-servico-usuario/internal/infrastructure/repository"
 	"context"
-	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	"comparei-servico-usuario/config"
+	"comparei-servico-usuario/internal/app"
+	customHTTP "comparei-servico-usuario/internal/infrastructure/http"
+	"comparei-servico-usuario/internal/infrastructure/messaging/subscriber"
+	"comparei-servico-usuario/internal/infrastructure/repository"
 
 	"github.com/go-redis/redis/v8"
-	_ "github.com/go-sql-driver/mysql"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
+	// carrega .env, etc.
 	if err := config.LoadConfig(); err != nil {
-		log.Fatal("Erro ao carregar configurações")
+		log.Fatal("Erro ao carregar configurações:", err)
 	}
 
-	// Testar conexão com Redis de mensageria
+	// --- Redis de mensageria ---
 	redisMessaging := redis.NewClient(&redis.Options{
 		Addr: os.Getenv("REDIS_MESSAGING_HOST") + ":" + os.Getenv("REDIS_MESSAGING_PORT"),
 	})
 	ctx := context.Background()
-	_, err := redisMessaging.Ping(ctx).Result()
-	if err != nil {
+	if _, err := redisMessaging.Ping(ctx).Result(); err != nil {
 		log.Fatal("Não foi possível conectar ao Redis de mensageria:", err)
 	}
 
-	// Configuração da conexão com o MySQL usando variáveis de ambiente
-	dsn := os.Getenv("MYSQL_USER") + ":" + os.Getenv("MYSQL_PASSWORD") + "@tcp(" + os.Getenv("MYSQL_HOST") + ")/" + os.Getenv("MYSQL_DB")
-	db, err := sql.Open("mysql", dsn)
+	// --- MongoDB ---
+	mongoClient, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Erro ao criar cliente MongoDB:", err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := mongoClient.Connect(ctx); err != nil {
+		log.Fatal("Erro ao conectar no MongoDB:", err)
+	}
+	// opcional: ping para certificar
+	if err := mongoClient.Ping(ctx, nil); err != nil {
+		log.Fatal("Ping no MongoDB falhou:", err)
 	}
 
-	// Verificar a conexão com o MySQL
-	if err := db.Ping(); err != nil {
-		log.Fatal("Não foi possível conectar ao MySQL: ", err)
-	}
+	// instancia repositório Mongo (hexagonal)
+	mongoRepo := repository.NewMongoRepository(
+		mongoClient,
+		os.Getenv("MONGO_DB_NAME"),
+		os.Getenv("MONGO_COLLECTION"),
+	)
 
-	// Configuração do cliente Redis usando variáveis de ambiente
+	// --- Redis de cache (outra instância) ---
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT"),
 	})
-
-	// Verificar a conexão com o Redis
-	if _, err := redisClient.Ping(redisClient.Context()).Result(); err != nil {
-		log.Fatal("Não foi possível conectar ao Redis: ", err)
+	if _, err := redisClient.Ping(ctx).Result(); err != nil {
+		log.Fatal("Não foi possível conectar ao Redis de cache:", err)
 	}
+	cacheRepo := repository.NewUserRepositoryCache(redisClient)
 
-	mysqlRepo := repository.NewMySQLRepository(db)
-	redisRepo := repository.NewUserRepositoryCache(redisClient)
+	// --- Service ---
+	userService := app.NewUserService(mongoRepo, cacheRepo)
 
-	if mysqlRepo == nil {
-		log.Fatal("mysqlRepo está nil")
-	}
-	if redisRepo == nil {
-		log.Fatal("redisRepo está nil")
-	}
-
-	userService := app.NewUserService(mysqlRepo, redisRepo)
+	// HTTP
 	customHTTP.InitHandlers(userService)
-
 	router := customHTTP.NewRouter(userService, redisClient)
 
-	log.Println("Servidor iniciado na porta " + os.Getenv("PORT"))
-	http.ListenAndServe(":"+os.Getenv("PORT"), router)
+	log.Println("Servidor iniciado na porta", os.Getenv("PORT"))
+	if err := http.ListenAndServe(":"+os.Getenv("PORT"), router); err != nil {
+		log.Fatal(err)
+	}
 }

@@ -5,7 +5,6 @@ import (
 	user_interface "comparei-servico-usuario/internal/domain/user/interface"
 	"context"
 	"encoding/json"
-	"strconv"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -19,9 +18,9 @@ func NewUserRepositoryCache(client *redis.Client) user_interface.UserRepositoryC
 	return &UserRepositoryCache{client: client}
 }
 
-func (r *UserRepositoryCache) GetUser(id int) (*user.User, error) {
+func (r *UserRepositoryCache) GetUser(id string) (*user.User, error) {
 	ctx := context.Background()
-	key := "/user/" + strconv.Itoa(id)
+	key := "/user/" + id
 	data, err := r.client.Get(ctx, key).Result()
 	if err != nil {
 		return nil, err
@@ -36,7 +35,7 @@ func (r *UserRepositoryCache) GetUser(id int) (*user.User, error) {
 
 func (r *UserRepositoryCache) SetUser(user *user.User) error {
 	ctx := context.Background()
-	key := "/user/" + strconv.Itoa(user.ID)
+	key := "/user/" + user.ID
 	data, err := json.Marshal(user)
 	if err != nil {
 		return err
@@ -63,7 +62,7 @@ func (r *UserRepositoryCache) SetUsers(users []*user.User) error {
 	return nil
 }
 
-func (r *UserRepositoryCache) DeleteUser(id int) error {
+func (r *UserRepositoryCache) DeleteUser(id string) error {
 
 	return nil
 }

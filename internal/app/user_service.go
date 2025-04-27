@@ -11,12 +11,12 @@ import (
 )
 
 type UserService struct {
-	mysqlRepo user_interface.UserRepository
+	mongoRepo user_interface.UserRepository
 	redisRepo user_interface.UserRepositoryCache
 }
 
-func NewUserService(mysqlRepo user_interface.UserRepository, redisRepo user_interface.UserRepositoryCache) *UserService {
-	return &UserService{mysqlRepo: mysqlRepo, redisRepo: redisRepo}
+func NewUserService(mongoRepo user_interface.UserRepository, redisRepo user_interface.UserRepositoryCache) *UserService {
+	return &UserService{mongoRepo: mongoRepo, redisRepo: redisRepo}
 }
 
 func (s *UserService) CreateUser(user *user.User) (*user.User, error) {
@@ -27,7 +27,7 @@ func (s *UserService) CreateUser(user *user.User) (*user.User, error) {
 	}
 	user.Password = string(hashedPassword)
 
-	new_user, err := s.mysqlRepo.CreateUser(user)
+	new_user, err := s.mongoRepo.CreateUser(user)
 	if err == nil {
 		s.redisRepo.SetUser(new_user)
 		err_pub := publisher.PubCreateUser(new_user)
@@ -39,13 +39,13 @@ func (s *UserService) CreateUser(user *user.User) (*user.User, error) {
 	return new_user, err
 }
 
-func (s *UserService) GetUser(id int) (*user.User, error) {
+func (s *UserService) GetUser(id string) (*user.User, error) {
 	user, err := s.redisRepo.GetUser(id)
 	if err == nil {
 		return user, nil
 	}
 
-	user, err = s.mysqlRepo.GetUser(id)
+	user, err = s.mongoRepo.GetUser(id)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (s *UserService) GetUsers() ([]*user.User, error) {
 		return userPtrs, nil
 	}
 
-	users, err = s.mysqlRepo.GetUsers()
+	users, err = s.mongoRepo.GetUsers()
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (s *UserService) GetUsers() ([]*user.User, error) {
 }
 
 func (s *UserService) UpdateUser(user *user.User) error {
-	err := s.mysqlRepo.UpdateUser(user)
+	err := s.mongoRepo.UpdateUser(user)
 	if err == nil {
 		s.redisRepo.SetUser(user)
 	}
@@ -99,7 +99,7 @@ func (s *UserService) DeleteUser(id int) error {
 
 // Authenticate verifica as credenciais do usuário e retorna o usuário se forem válidas
 func (s *UserService) Authenticate(username, password string) (*user.User, error) {
-	user, err := s.mysqlRepo.GetUserByUsername(username)
+	user, err := s.mongoRepo.GetUserByUsername(username)
 	if err != nil {
 		return nil, err
 	}

@@ -4,9 +4,9 @@ import "comparei-servico-usuario/internal/domain/user"
 
 type UserRepository interface {
 	CreateUser(user *user.User) (*user.User, error)
-	GetUser(id int) (*user.User, error)
+	GetUser(id string) (*user.User, error)
 	UpdateUser(user *user.User) error
-	DeleteUser(id int) error
+	DeleteUser(id string) error
 	GetUserByUsername(username string) (*user.User, error)
 	GetUsers() ([]*user.User, error)
 }

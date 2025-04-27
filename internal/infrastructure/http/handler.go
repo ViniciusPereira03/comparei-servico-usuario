@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/go-redis/redis/v8"
@@ -57,11 +56,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
-		return
-	}
+	id := vars["id"]
+
 	user, err := service.GetUser(id)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
@@ -81,11 +77,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		sendErrorResponse(w, http.StatusBadRequest, err, "Invalid user ID")
-		return
-	}
+	id := vars["id"]
 
 	var userDTO dto.UpdateUserDTO
 	if err := json.NewDecoder(r.Body).Decode(&userDTO); err != nil {
@@ -102,7 +94,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	user := userDTO.ParseToUser()
 	user.ID = id
 
-	err = service.UpdateUser(user)
+	err := service.UpdateUser(user)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, err, "Erro ao atualizar usuário")
 		return
@@ -113,12 +105,9 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
-		return
-	}
-	err = service.DeleteUser(id)
+	id := vars["id"]
+
+	err := service.DeleteUser(id)
 	if err != nil {
 		http.Error(w, "Erro ao deletar usuário", http.StatusInternalServerError)
 		return
