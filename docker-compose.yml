@@ -16,7 +16,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.0"
+          cpus: "0.5"
           memory: "512M"
   mongo-user:
     image: mongo:latest
@@ -26,8 +26,6 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: userdb
       MONGO_INITDB_DATABASE: userdb
-    ports:
-      - "27017:27017"
     volumes:
       - mongo_data:/data/db
       - ./migrations:/docker-entrypoint-initdb.d
@@ -36,8 +34,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.0"
-          memory: "768M"
+          cpus: "0.5"
+          memory: "512M"
   redis:
     image: redis:7
     container_name: redis_user
@@ -47,7 +45,7 @@ services:
       resources:
         limits:
           cpus: "0.5"
-          memory: "1G"
+          memory: "768M"
 
 networks:
   net_user:
