@@ -82,7 +82,7 @@ func main() {
 	customHTTP.InitHandlers(userService)
 	router := customHTTP.NewRouter(userService, redisClient)
 
-	log.Println("Servidor iniciado na porta", os.Getenv("PORT"))
+	log.Println("🚀 Servidor iniciado na porta", os.Getenv("PORT"))
 	if err := http.ListenAndServe(":"+os.Getenv("PORT"), router); err != nil {
 		log.Fatal(err)
 	}
