@@ -9,8 +9,8 @@ apiKey: {{apiKey}}
 
 {
     "name": "Vinícius Teste",
-    "username": "vini",
-    "email": "vini@teste.com",
+    "username": "vini_teste",
+    "email": "vini_teste@teste.com",
     "password": "12345678"
 }
 
@@ -20,7 +20,7 @@ Content-Type: application/json
 apiKey: {{apiKey}}
 
 ###
-get {{host}}/user/680e92d8820039eb6f362a47
+get {{host}}/user/68253b6a295f37f3465d1469
 Content-Type: application/json
 apiKey: {{apiKey}}
 
@@ -56,7 +56,7 @@ Content-Type: application/json
 apiKey: {{apiKey}}
 
 {
-    "username": "vini",
+    "username": "vini_teste",
     "password": "12345678"
 }
 
