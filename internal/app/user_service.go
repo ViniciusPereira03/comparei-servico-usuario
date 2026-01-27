@@ -81,7 +81,13 @@ func (s *UserService) GetUsers() ([]*user.User, error) {
 func (s *UserService) UpdateUser(user *user.User) error {
 	err := s.mongoRepo.UpdateUser(user)
 	if err == nil {
+		user, err = s.mongoRepo.GetUser(user.ID)
 		s.redisRepo.SetUser(user)
+
+		err_pub := publisher.PubModifyUser(user)
+		if err_pub != nil {
+			log.Println("[ERRO PUB] ", err_pub)
+		}
 	}
 	return err
 }
@@ -94,6 +100,10 @@ func (s *UserService) UpdateLevelUser(user_id string, level int) error {
 			return err
 		}
 		s.redisRepo.SetUser(user)
+		err_pub := publisher.PubModifyUser(user)
+		if err_pub != nil {
+			log.Println("[ERRO PUB] ", err_pub)
+		}
 	}
 	return err
 }

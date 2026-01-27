@@ -80,12 +80,39 @@ func (r *MongoRepository) UpdateUser(u *user.User) error {
 	if err != nil {
 		return err
 	}
-	update := bson.M{"$set": bson.M{
-		"name":     u.Name,
-		"username": u.Username,
-		"email":    u.Email,
-		"status":   u.Status,
-	}}
+
+	set := bson.M{}
+
+	if u.Name != "" {
+		set["name"] = u.Name
+	}
+	if u.Username != "" {
+		set["username"] = u.Username
+	}
+	if u.Email != "" {
+		set["email"] = u.Email
+	}
+	if u.Photo != "" {
+		set["photo"] = u.Photo
+	}
+	if u.Status > 0 {
+		set["status"] = u.Status
+	}
+	if u.RayDistance > 0 {
+		set["ray_distance"] = u.RayDistance
+	}
+	if u.Level > 0 {
+		set["level"] = u.Level
+	}
+
+	if len(set) == 0 {
+		return nil
+	}
+
+	update := bson.M{
+		"$set": set,
+	}
+
 	_, err = r.collection.UpdateByID(context.Background(), oid, update)
 	return err
 }
