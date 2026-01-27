@@ -26,6 +26,10 @@ func NewMongoRepository(client *mongo.Client, dbName, collectionName string) *Mo
 func (r *MongoRepository) CreateUser(u *user.User) (*user.User, error) {
 	u.Status = 1
 	u.Level = 1
+	u.RayDistance = 5
+	now := time.Now()
+	u.CreatedAt = now
+	u.ModifiedAt = now
 	// Insere o documento de usuário
 	res, err := r.collection.InsertOne(context.Background(), u)
 	if err != nil {
