@@ -13,6 +13,8 @@ services:
       - net_user
       - comparei_net
     command: ["./wait-for-it.sh", "mongo-user:27017", "--", "./main"]
+    volumes:
+      - ./uploads:/app/uploads
     deploy:
       resources:
         limits:
@@ -27,7 +29,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: userdb
       MONGO_INITDB_DATABASE: userdb
     volumes:
-      - mongo_data:/data/db
+      - ./data/mongo:/data/db
       - ./migrations:/docker-entrypoint-initdb.d
     networks:
       - net_user
@@ -39,6 +41,9 @@ services:
   redis:
     image: redis:7
     container_name: redis_user
+    command: redis-server --appendonly yes
+    volumes:
+      - ./data/redis:/data
     networks:
       - net_user
     deploy:
