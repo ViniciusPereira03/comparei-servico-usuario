@@ -20,24 +20,38 @@ func (dto *CreateUserDTO) ParseToUser() *user.User {
 }
 
 type UpdateUserDTO struct {
-	Name        string `json:"name" validate:"required,min=2,max=255"`
-	Username    string `json:"username" validate:"required"`
-	Email       string `json:"email" validate:"required,email"`
-	Status      int    `json:"status" validate:"required"`
-	Photo       string `json:"photo"`
-	RayDistance int    `json:"ray_distance"`
-	Level       int    `json:"level"`
+	Name        *string `json:"name"`
+	Username    *string `json:"username"`
+	Email       *string `json:"email"`
+	Status      *int    `json:"status"`
+	Photo       *string `json:"photo"`
+	RayDistance *int    `json:"ray_distance"`
+	Level       *int    `json:"level"`
 }
 
 // Método para converter CreateUserDTO para user.User
 func (dto *UpdateUserDTO) ParseToUser() *user.User {
 	return &user.User{
-		Name:        dto.Name,
-		Username:    dto.Username,
-		Email:       dto.Email,
-		Status:      dto.Status,
-		Photo:       dto.Photo,
-		RayDistance: dto.RayDistance,
-		Level:       dto.Level,
+		Name:        derefString(dto.Name),
+		Username:    derefString(dto.Username),
+		Email:       derefString(dto.Email),
+		Photo:       derefString(dto.Photo),
+		Status:      derefInt(dto.Status),
+		RayDistance: derefInt(dto.RayDistance),
+		Level:       derefInt(dto.Level),
 	}
+}
+
+func derefString(s *string) string {
+	if s != nil {
+		return *s
+	}
+	return ""
+}
+
+func derefInt(i *int) int {
+	if i != nil {
+		return *i
+	}
+	return 0
 }

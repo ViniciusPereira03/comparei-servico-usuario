@@ -10,7 +10,7 @@ type User struct {
 	Email       string     `bson:"email"      json:"email"`
 	Password    string     `bson:"password"   json:"password"`
 	Status      int        `bson:"status"     json:"status"`
-	Photo       string     `bson:"photo,omitempty" json:"photo,omitempty"`
+	Photo       string     `bson:"photo" json:"photo"`
 	RayDistance int        `bson:"ray_distance"     json:"ray_distance"`
 	Level       int        `bson:"level"            json:"level"`
 	CreatedAt   time.Time  `bson:"created_at"       json:"created_at"`

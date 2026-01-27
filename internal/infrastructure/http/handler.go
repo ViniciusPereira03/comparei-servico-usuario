@@ -6,14 +6,18 @@ import (
 	"comparei-servico-usuario/internal/infrastructure/http/dto"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var service *app.UserService
@@ -103,6 +107,118 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+func UpdateUserPhoto(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userID := params["id"]
+
+	oid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
+	// Limite de upload (5MB)
+	r.ParseMultipartForm(5 << 20)
+
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Arquivo não enviado", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// Validação simples de tipo
+	ext := strings.ToLower(filepath.Ext(handler.Filename))
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
+		http.Error(w, "Formato de imagem inválido", http.StatusBadRequest)
+		return
+	}
+
+	// Gera nome único
+	filename := primitive.NewObjectID().Hex() + ext
+
+	// Cria diretório se não existir
+	uploadDir := "uploads/profile"
+	if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
+		http.Error(w, "Erro ao criar diretório", http.StatusInternalServerError)
+		return
+	}
+
+	filePath := filepath.Join(uploadDir, filename)
+
+	dst, err := os.Create(filePath)
+	if err != nil {
+		http.Error(w, "Erro ao salvar imagem", http.StatusInternalServerError)
+		return
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
+		http.Error(w, "Erro ao escrever arquivo", http.StatusInternalServerError)
+		return
+	}
+
+	// Caminho salvo no banco
+	photoPath := fmt.Sprintf("/uploads/profile/%s", filename)
+
+	// Atualiza usuário no Mongo
+	user := &user.User{}
+	user.ID = oid.Hex()
+	user.Photo = photoPath
+
+	err = service.UpdateUser(user)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, err, "Erro ao atualizar foto de perfil do usuário")
+		return
+	}
+
+	response := map[string]string{
+		"photo": photoPath,
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func GetUserProfilePhoto(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	filename := params["filename"]
+
+	if filename == "" {
+		http.Error(w, "Arquivo inválido", http.StatusBadRequest)
+		return
+	}
+
+	// Segurança básica: impedir path traversal
+	if strings.Contains(filename, "..") {
+		http.Error(w, "Acesso inválido", http.StatusForbidden)
+		return
+	}
+
+	filePath := filepath.Join("uploads", "profile", filename)
+
+	// Verifica se o arquivo existe
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		http.Error(w, "Imagem não encontrada", http.StatusNotFound)
+		return
+	}
+
+	// Define Content-Type correto
+	ext := strings.ToLower(filepath.Ext(filename))
+	switch ext {
+	case ".jpg", ".jpeg":
+		w.Header().Set("Content-Type", "image/jpeg")
+	case ".png":
+		w.Header().Set("Content-Type", "image/png")
+	default:
+		http.Error(w, "Formato de imagem inválido", http.StatusBadRequest)
+		return
+	}
+
+	http.ServeFile(w, r, filePath)
+}
+
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -150,7 +266,7 @@ func LoginHandler(userService *app.UserService) http.HandlerFunc {
 
 		// Retornar token JWT
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
+		json.NewEncoder(w).Encode(map[string]string{"id": user.ID, "token": tokenString})
 	}
 }
 
