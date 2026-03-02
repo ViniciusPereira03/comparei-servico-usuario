@@ -1,0 +1,88 @@
+@token = {{ login.response.body.token }}
+
+###
+# @name user
+
+post {{host}}/user
+Content-Type: application/json
+apiKey: {{apiKey}}
+
+{
+    "name": "Vinícius Teste",
+    "username": "vini_teste",
+    "email": "vinicius.gpereira03+comparei_1@gmail.com",
+    "password": "12345678"
+}
+
+###
+get {{host}}/users
+Content-Type: application/json
+apiKey: {{apiKey}}
+
+###
+get {{host}}/user/697357ae6a49d8501cb9e942
+Content-Type: application/json
+apiKey: {{apiKey}}
+
+###
+get {{host}}/uploads/profile/697360bb567e441147c209e9.jpg
+
+
+###
+# @name updateUser
+
+put {{host}}/user/69720323f0928b3dc5f64906
+Content-Type: application/json
+apiKey: {{apiKey}}
+
+{
+    "name": "Vinícius Pereira",
+    "username": "vini",
+    "email": "vinicius.gpereira03@gmail.com",
+    "status": 1,
+    "ray_distance": 5,
+    "level": 1
+}
+
+###
+# @name updatePhoto
+post {{host}}/user/69720323f0928b3dc5f64906/photo
+apiKey: {{apiKey}}
+
+{
+
+}
+
+###
+# @name deleteUser
+
+delete {{host}}/user/3
+Content-Type: application/json
+apiKey: {{apiKey}}
+
+###
+# @name login
+
+post {{host}}/login
+Content-Type: application/json
+apiKey: {{apiKey}}
+
+{
+    "username": "vini",
+    "password": "12345678"
+}
+
+###
+# @name validateToken
+
+get {{host}}/validate-token
+Content-Type: application/json
+apiKey: {{apiKey}}
+Authorization: Bearer {{token}}
+
+###
+# @name clearRedis
+
+post {{host}}/clear-redis
+Content-Type: application/json
+apiKey: {{apiKey}}

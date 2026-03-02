@@ -1,60 +1,63 @@
 version: '3.8'
+
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: comparei_servico_usuario
+    build: .
+    container_name: comparei-servico-usuario
     ports:
-      - "${APP_PORT}:${APP_PORT}"
+      - "8080:8080"
     depends_on:
-      - mysql
+      - mongo-user
       - redis
-    environment:
-      - CONFIG_PATH=/config/config.yaml
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
     networks:
-      - app_network
+      - net_user
+      - comparei_net
+    command: ["./wait-for-it.sh", "mongo-user:27017", "--", "./main"]
     volumes:
-      - ./.env:/app/.env
-  mysql:
-    image: mysql:8.0
-    container_name: mysql_db
+      - ./uploads:/app/uploads
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+  mongo-user:
+    image: mongo:latest
+    container_name: mongo-user
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE} 
-      MYSQL_USER: ${DB_USER} 
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "${DB_PORT}:${DB_PORT}"
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: userdb
+      MONGO_INITDB_DATABASE: userdb
     volumes:
-      - db_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql 
-    expose:
-      - "${DB_PORT}" 
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 30s
-      retries: 5
-      start_period: 5s
-      timeout: 10s
+      - ./data/mongo:/data/db
+      - ./migrations:/docker-entrypoint-initdb.d
     networks:
-      - app_network
-
+      - net_user
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
   redis:
-    image: redis:7.0
-    container_name: redis_cache
-    ports:
-      - "${REDIS_PORT}:${REDIS_PORT}"
+    image: redis:7
+    container_name: redis_user
+    command: redis-server --appendonly yes
+    volumes:
+      - ./data/redis:/data
     networks:
-      - app_network
-
-volumes:
-  db_data:
+      - net_user
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "768M"
 
 networks:
-  app_network:
+  net_user:
     driver: bridge
+  
+  comparei_net:
+    external: true
+
+volumes:
+  mongo_data:
