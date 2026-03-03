@@ -54,7 +54,7 @@ func (s *UserService) GetUser(id string) (*user.User, error) {
 	return user, nil
 }
 
-func (s *UserService) GetUsers() ([]*user.User, error) {
+func (s *UserService) GetUsers(order string) ([]*user.User, error) {
 	users, err := s.redisRepo.GetUsers()
 	if err == nil {
 		userPtrs := make([]*user.User, len(users))
@@ -64,7 +64,7 @@ func (s *UserService) GetUsers() ([]*user.User, error) {
 		return userPtrs, nil
 	}
 
-	users, err = s.mongoRepo.GetUsers()
+	users, err = s.mongoRepo.GetUsers(order)
 	if err != nil {
 		return nil, err
 	}
