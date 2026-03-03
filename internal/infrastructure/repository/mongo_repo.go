@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // MongoRepository implementa o repository usando MongoDB
@@ -57,8 +58,14 @@ func (r *MongoRepository) GetUser(id string) (*user.User, error) {
 }
 
 // GetUsers lista todos os usuários ativos
-func (r *MongoRepository) GetUsers() ([]*user.User, error) {
-	cursor, err := r.collection.Find(context.Background(), bson.M{"status": 1})
+func (r *MongoRepository) GetUsers(order string) ([]*user.User, error) {
+
+	findOptions := options.Find()
+	if order == "ranking" {
+		findOptions.SetSort(bson.D{{Key: "level", Value: -1}})
+	}
+
+	cursor, err := r.collection.Find(context.Background(), bson.M{"status": 1}, findOptions)
 	if err != nil {
 		return nil, err
 	}

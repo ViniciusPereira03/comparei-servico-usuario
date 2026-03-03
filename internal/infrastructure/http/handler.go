@@ -71,7 +71,10 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := service.GetUsers()
+	queryValues := r.URL.Query()
+	orderParam := queryValues.Get("order")
+
+	users, err := service.GetUsers(orderParam)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return

@@ -9,5 +9,5 @@ type UserRepository interface {
 	UpdateLevelUser(id string, level int) error
 	DeleteUser(id string) error
 	GetUserByUsername(username string) (*user.User, error)
-	GetUsers() ([]*user.User, error)
+	GetUsers(order string) ([]*user.User, error)
 }
